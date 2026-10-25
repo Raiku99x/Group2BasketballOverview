@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Group 2 Basketball Overview</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23f26a14'/%3E%3Cg fill='none' stroke='%231a0a00' stroke-width='4'%3E%3Cpath d='M50 4v92M4 50h92M17 17c20 14 20 52 0 66M83 17c-20 14-20 52 0 66'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{--bg:#050a14;--fg:#eef4ff;--mut:#9db3d6;--acc:#ffb020;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:"Inter",system-ui,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.shade{position:fixed;inset:0;z-index:2;pointer-events:none;background:linear-gradient(90deg,rgba(5,10,20,.9) 0%,rgba(5,10,20,.6) 40%,rgba(5,10,20,0) 72%),linear-gradient(0deg,rgba(5,10,20,.96) 0%,rgba(5,10,20,0) 40%),linear-gradient(180deg,rgba(5,10,20,.75) 0%,rgba(5,10,20,0) 20%)}
+:root{--m:clamp(22px,5vw,72px)}
+.top{position:fixed;z-index:6;top:calc(env(safe-area-inset-top,0px) + 22px);left:var(--m);right:var(--m);display:flex;align-items:center;justify-content:space-between}
+.mark{display:flex;align-items:center;gap:12px;font-weight:800;font-size:18px;letter-spacing:.02em}
+.mark .logo{width:40px;height:40px;filter:drop-shadow(0 0 12px rgba(242,106,20,.6))}
+.mark span{color:var(--mut);font-weight:500}
+.tag{font-size:14px;color:var(--mut);letter-spacing:.14em;text-transform:uppercase}
+.hero{position:fixed;z-index:5;left:var(--m);top:44%;transform:translateY(-50%);max-width:92vw}
+.big{width:clamp(70px,8vw,120px);height:auto;display:block;margin-bottom:clamp(14px,2vw,26px);filter:drop-shadow(0 0 30px rgba(242,106,20,.55))}
+.g{display:block;font-weight:800;font-size:clamp(22px,2.4vw,38px);line-height:1;letter-spacing:.32em;text-transform:uppercase;color:var(--acc)}
+.t{display:block;margin-top:clamp(10px,1.4vw,18px);font-weight:900;font-size:clamp(46px,8vw,138px);line-height:.92;letter-spacing:-.035em;color:#fff;text-shadow:0 8px 50px rgba(0,0,0,.6)}
+.bar{width:clamp(110px,12vw,200px);height:6px;margin-top:clamp(18px,2.2vw,30px);background:linear-gradient(90deg,var(--acc),#ff6a1a);border-radius:3px}
+.roster{position:fixed;z-index:5;left:var(--m);right:var(--m);bottom:calc(env(safe-area-inset-bottom,0px) + 30px);display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.roster h2{margin:0 0 14px;font-size:15px;font-weight:700;color:var(--acc);letter-spacing:.2em;text-transform:uppercase}
+.mem{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,auto);gap:14px 40px;justify-content:start}
+.mem li{padding-left:12px;border-left:2px solid var(--acc);font-size:clamp(16px,1.5vw,24px);font-weight:700;color:#eef4ff;white-space:nowrap}
+.go{flex:none;text-decoration:none;background:var(--acc);color:#1a1000;padding:15px 30px;font-size:18px;font-weight:700;border-radius:10px;box-shadow:0 8px 30px rgba(255,176,32,.35)}
+.go:hover{filter:brightness(1.1)}.go:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media(prefers-reduced-motion:no-preference){.hero>*,.roster{animation:in .9s cubic-bezier(.2,.7,.2,1) both}.g{animation-delay:.1s}.t{animation-delay:.22s}.bar{animation-delay:.34s}.roster{animation-delay:.5s}}
+@keyframes in{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@media(max-width:900px){.mem{grid-template-columns:repeat(2,auto);gap:10px 28px}.roster{flex-direction:column;align-items:flex-start}}
+@media(max-width:700px){.hero{top:30%}.tag{display:none}.mem li{white-space:normal;font-size:17px}.go{width:100%;text-align:center}}
+</style></head><body>
+<canvas id="c"></canvas><div class="shade"></div>
+<div class="top"><div class="mark">Group 2 <span>Basketball</span></div><div class="tag">Court Anatomy · 3D</div></div>
+<div class="hero"><svg class="logo big" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="bg2" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#ffa24a"/><stop offset=".6" stop-color="#f26a14"/><stop offset="1" stop-color="#b8420a"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bg2)"/><g fill="none" stroke="#1a0a00" stroke-width="3.2" stroke-linecap="round"><circle cx="50" cy="50" r="46"/><path d="M50 4v92M4 50h92"/><path d="M17 17c20 14 20 52 0 66"/><path d="M83 17c-20 14-20 52 0 66"/></g></svg><span class="g">Group 2</span><span class="t">Basketball<br>Overview</span><div class="bar"></div></div>
+<div class="roster"><div><h2>Group members</h2><ul class="mem" id="mem"></ul></div><a class="go" href="The_Origins_of_Basketball.html">Start →</a></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const names=["Angelie Ella Babila","Edsel Frank Ino Obero","Efren Laso Coyoca","Francy Mae Rellas Gorobat","Hertz John Tranquilo","Joan Casia","John Lhoel Morillo"];
+document.getElementById('mem').innerHTML=names.map(n=>'<li>'+n+'</li>').join('');
+const T=THREE,cv=document.getElementById('c');
+const R=new T.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer:coarse)').matches?1.5:2));
+const S=new T.Scene();S.background=new T.Color(0x050a14);S.fog=new T.Fog(0x050a14,35,80);
+const cam=new T.PerspectiveCamera(45,1,.1,200);
+S.add(new T.HemisphereLight(0xbcd4ff,0x101830,.6));
+const dl=new T.DirectionalLight(0xffffff,.5);dl.position.set(-8,25,10);S.add(dl);
+function rs(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.clearViewOffset();cam.fov=Math.min(80,45*Math.max(1,Math.pow(1.7/cam.aspect,.7)));cam.updateProjectionMatrix()}
+addEventListener('resize',rs);rs();
+
+const Y=.02,PI=Math.PI;
+const flat=(w,d,c,y)=>{const m=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({color:c,roughness:.55}));m.rotation.x=-PI/2;m.position.y=y;S.add(m)};
+flat(200,200,0x070d1a,-.05);flat(33,20,0x4a96e0,-.01);flat(28,15,0x2f80e0,0);
+const white=new T.MeshBasicMaterial({color:0xffffff,side:T.DoubleSide});
+function strip(pts,w){const v=[],ix=[],n=pts.length;
+ for(let i=0;i<n;i++){const a=pts[Math.max(i-1,0)],b=pts[Math.min(i+1,n-1)];let tx=b[0]-a[0],tz=b[1]-a[1];const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;
+  v.push(pts[i][0]-tz*w/2,Y,pts[i][1]+tx*w/2,pts[i][0]+tz*w/2,Y,pts[i][1]-tx*w/2)}
+ for(let i=0;i<n-1;i++){const a=i*2,b=a+2;ix.push(a,a+1,b,a+1,b+1,b)}
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(v,3));g.setIndex(ix);S.add(new T.Mesh(g,white))}
+const seg=(a,b,w=.1)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),e=w/2/l;strip([[a[0]-dx*e,a[1]-dz*e],[b[0]+dx*e,b[1]+dz*e]],w)};
+const arc=(cx,cz,r,a0,a1,n=64)=>{const p=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;p.push([cx+r*Math.cos(a),cz+r*Math.sin(a)])}return p};
+[[[-14,-7.5],[14,-7.5]],[[14,-7.5],[14,7.5]],[[14,7.5],[-14,7.5]],[[-14,7.5],[-14,-7.5]],[[0,-7.5],[0,7.5]]].forEach(s=>seg(s[0],s[1]));
+strip(arc(0,0,1.8,0,2*PI,72),.1);
+const rimMat=new T.MeshStandardMaterial({color:0xff6a1a,roughness:.4});
+[-1,1].forEach(s=>{
+ const bx=s*14,fx=s*(14-5.8),rimX=s*(14-1.575);
+ seg([bx,-2.45],[fx,-2.45]);seg([bx,2.45],[fx,2.45]);seg([fx,-2.45],[fx,2.45]);
+ const a0=s>0?PI/2:-PI/2;strip(arc(fx,0,1.8,a0,a0+PI),.1);
+ const R3=6.75,th=Math.asin(6.6/R3),xs=Math.sqrt(R3*R3-6.6*6.6);
+ strip(arc(rimX,0,R3,...(s>0?[PI-th,PI+th]:[-th,th]),90),.1);
+ [-6.6,6.6].forEach(z=>seg([bx,z],[rimX-s*xs,z]));
+ strip(arc(rimX,0,1.25,a0,a0+PI,32),.1);seg([bx,-1.25],[rimX,-1.25]);seg([bx,1.25],[rimX,1.25]);
+ const bxp=s*(14-1.2);
+ const bm=new T.Mesh(new T.BoxGeometry(.05,1.05,1.8),new T.MeshStandardMaterial({color:0xcfe6ff,transparent:true,opacity:.35,roughness:.1}));bm.position.set(bxp,3.425,0);S.add(bm);
+ const be=new T.LineSegments(new T.EdgesGeometry(bm.geometry),new T.LineBasicMaterial({color:0xffffff}));be.position.copy(bm.position);S.add(be);
+ const rim=new T.Mesh(new T.TorusGeometry(.225,.014,8,32),rimMat);rim.rotation.x=PI/2;rim.position.set(rimX,3.05,0);S.add(rim);
+ const net=new T.Mesh(new T.CylinderGeometry(.225,.13,.42,16,3,true),new T.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.7}));net.position.set(rimX,2.84,0);S.add(net);
+ const pole=new T.Mesh(new T.BoxGeometry(.2,3.6,.2),new T.MeshStandardMaterial({color:0x222b3d}));pole.position.set(s*14.9,1.8,0);S.add(pole);
+ const arm=new T.Mesh(new T.BoxGeometry(2.1,.14,.14),new T.MeshStandardMaterial({color:0x222b3d}));arm.position.set(s*13.9,3.5,0);S.add(arm);
+});
+// ball bouncing at center
+const ball=new T.Group();ball.add(new T.Mesh(new T.SphereGeometry(.45,32,20),new T.MeshStandardMaterial({color:0xff7a1a,roughness:.6})));
+const sm=new T.MeshBasicMaterial({color:0x1a0a00});[[0,0],[PI/2,0],[0,PI/2]].forEach(r=>{const t=new T.Mesh(new T.TorusGeometry(.452,.012,6,40),sm);t.rotation.set(r[0],r[1],0);ball.add(t)});
+const bt=new T.Mesh(new T.TorusGeometry(.33,.012,6,40),sm);bt.rotation.y=PI/2;bt.position.x=.0;ball.add(bt);S.add(ball);
+const glow=new T.PointLight(0xffb020,1.2,30);glow.position.set(0,7,0);S.add(glow);
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now){requestAnimationFrame(frame);
+ const t=still?0:now/1000,a=t*.12;
+ cam.position.set(Math.sin(a)*14-4,11+Math.sin(t*.3)*.8,Math.cos(a)*5+19);cam.lookAt(1,0,0);
+ ball.position.set(0,.45+Math.abs(Math.sin(t*2.6))*2.2,0);ball.rotation.set(t*2,t*1.3,0);
+ R.render(S,cam)}
+requestAnimationFrame(frame);
+</script><script>(function(){function P(m){parent.postMessage({bb:m},'*')}
+function dots(){return [].slice.call(document.querySelectorAll('#dots .dot'))}
+function idx(){return dots().findIndex(function(x){return x.classList.contains('on')})}
+var aN=false,aP=false,last=-1;
+document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;
+var a=t.closest('a.go');if(a){e.preventDefault();e.stopPropagation();P('next');return}
+var n=dots().length;if(!n)return;var i=idx();
+if(t.closest('#nx')){aN=(i===n-1);aP=false}
+else if(t.closest('#pv')){aP=(i===0);aN=false}
+else if(t.closest('.dot')){aN=false;aP=false}},true);
+function watch(){var d=document.getElementById('dots');if(!d||!d.children.length){setTimeout(watch,200);return}
+last=idx();
+new MutationObserver(function(){var n=dots().length,i=idx();if(i<0)return;
+if(aN&&last===n-1&&i===0){aN=false;last=i;P('next');return}
+if(aP&&last===0&&i===n-1){aP=false;last=i;P('prev');return}
+if(i!==last){aN=false;aP=false}
+last=i}).observe(d,{subtree:true,attributes:true,attributeFilter:['class']})}
+watch();
+var st=document.createElement('style');st.textContent='.tag{display:none!important}';document.head.appendChild(st);
+window.addEventListener('load',function(){try{window.focus()}catch(x){}})})();</script></body></html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Five Positions of Basketball</title>
+<style>
+:root{--bg:#050a14;--fg:#eef4ff;--mut:#9db3d6;--acc:#ffb020;--card:rgba(8,16,32,.72);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:"Inter",system-ui,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + 18px);left:22px;z-index:7;font-weight:700;letter-spacing:.18em;font-size:20px;text-transform:uppercase;color:var(--mut)}
+.brand b{color:var(--acc)}
+.card{position:fixed;left:0;top:0;bottom:0;width:37%;min-width:380px;z-index:6;background:linear-gradient(90deg,rgba(5,10,20,.92) 0%,rgba(5,10,20,.8) 65%,rgba(5,10,20,0) 100%);padding:90px 64px 40px 40px;pointer-events:none;display:flex;flex-direction:column;justify-content:center}
+.num{font-size:21px;letter-spacing:.2em;color:var(--acc);font-weight:700}
+h1{margin:8px 0 12px;font-size:clamp(38px,3.5vw,64px);line-height:1.1;font-weight:800}
+p{margin:0 0 14px;color:#cfdcf5;line-height:1.5;font-size:clamp(23px,2.1vw,38px)}
+.tip{margin:0 0 18px;padding:12px 16px;border-left:3px solid var(--acc);background:rgba(255,176,32,.1);font-size:clamp(15px,1.2vw,21px);line-height:1.45;color:#ffe3b0;border-radius:0 10px 10px 0}.tip b{display:block;font-size:.7em;letter-spacing:.15em;text-transform:uppercase;color:var(--acc);margin-bottom:4px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:8px 15px;border-radius:99px;background:rgba(255,176,32,.14);border:1px solid rgba(255,176,32,.4);font-size:18px;color:#ffd58a}
+.nav{position:fixed;right:22px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:6;display:flex;gap:10px;align-items:center}
+button{font:inherit;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:var(--card);color:var(--fg);padding:14px 26px;font-size:19px;border-radius:12px;backdrop-filter:blur(10px);font-weight:600}
+button.p{background:var(--acc);color:#1a1000;border-color:var(--acc)}button:hover{filter:brightness(1.15)}
+.dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:6;display:flex;flex-direction:column;gap:12px}
+.dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.28);cursor:pointer;transition:.3s;border:0;padding:0;backdrop-filter:none}
+.dot.on{background:var(--acc);transform:scale(1.5);box-shadow:0 0 12px var(--acc)}
+@media(max-width:640px){.nav{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 12px)}.dots{display:none}h1{font-size:38px}p{font-size:23px}.chip{font-size:15px}button{font-size:16px;padding:12px 18px}.card{padding:20px 18px 70px;top:auto;width:100%;min-width:0;height:46%;background:linear-gradient(0deg,rgba(5,10,20,.94) 60%,rgba(5,10,20,0))}}
+.lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:5;pointer-events:none;transition:height .7s cubic-bezier(.2,.7,.2,1)}.lb.t{top:0}.lb.b{bottom:0}body.cine .lb{height:9vh}
+#bk{position:fixed;right:9%;top:24%;z-index:8;font-weight:900;font-size:clamp(40px,6vw,96px);letter-spacing:.06em;color:var(--acc);text-shadow:0 0 30px rgba(255,176,32,.7);transform:scale(.6) rotate(-6deg);opacity:0;transition:.25s;pointer-events:none}#bk.on{opacity:1;transform:scale(1) rotate(-6deg)}.tip{display:none!important}@media(max-width:640px){.brand{font-size:14px;letter-spacing:.12em;max-width:60%}}.brand{z-index:50!important;pointer-events:none}</style></head><body>
+<canvas id="c"></canvas><div class="lb t"></div><div class="lb b"></div>
+<div id="bk">BLOCKED!</div>
+<div class="brand">The Five Positions of Basketball</div>
+<div class="card" id="card"><div class="num" id="num"></div><h1 id="ti"></h1><p id="tx"></p><div class="chips" id="ch"></div></div>
+<div class="nav"><button id="pv">← Back</button><button class="p" id="nx">Next →</button></div>
+<div class="dots" id="dots"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<script>const GLBURL='../assets/player.glb';</script>
+<script>
+var NETM,RIM;const T=THREE,cv=document.getElementById('c'),PI=Math.PI;
+const R=new T.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer:coarse)').matches?1.5:2));
+const S=new T.Scene();S.background=new T.Color(0x050a14);S.fog=new T.Fog(0x050a14,40,95);
+const cam=new T.PerspectiveCamera(45,1,.1,200);
+S.add(new T.HemisphereLight(0xbcd4ff,0x101830,.85));
+const dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(-8,25,10);S.add(dl);
+var AF=1;function rs(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);if(w<=640){const fh=h*.54;cam.aspect=w/fh;cam.setViewOffset(w,fh,0,0,w,h)}else{const fw=w*.83;cam.aspect=fw/h;cam.setViewOffset(fw,h,-(w-fw),0,w,h)}AF=Math.max(1,Math.pow(1.7/cam.aspect,.7));cam.fov=Math.min(80,(cam.userData.bf||45)*AF);cam.updateProjectionMatrix()}addEventListener('resize',rs);rs();
+
+// court
+const flat=(w,d,c,y)=>{const m=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({color:c,roughness:.55}));m.rotation.x=-PI/2;m.position.y=y;S.add(m)};
+flat(200,200,0x070d1a,-.05);flat(33,20,0x4a96e0,-.01);flat(28,15,0x2f80e0,0);
+const Y=.02,W=.1,LM=new T.MeshBasicMaterial({color:0xffffff,side:T.DoubleSide});
+function strip(pts,w,closed){const v=[],ix=[],n=pts.length;
+ for(let i=0;i<n;i++){const a=pts[closed?(i-1+n)%n:Math.max(i-1,0)],b=pts[closed?(i+1)%n:Math.min(i+1,n-1)];let tx=b[0]-a[0],tz=b[1]-a[1];const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;
+  v.push(pts[i][0]-tz*w/2,Y,pts[i][1]+tx*w/2,pts[i][0]+tz*w/2,Y,pts[i][1]-tx*w/2)}
+ const m=closed?n:n-1;for(let i=0;i<m;i++){const a=i*2,b=((i+1)%n)*2;ix.push(a,a+1,b,a+1,b+1,b)}
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(v,3));g.setIndex(ix);S.add(new T.Mesh(g,LM))}
+const seg=(a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),e=W/2/l;strip([[a[0]-dx*e,a[1]-dz*e],[b[0]+dx*e,b[1]+dz*e]],W)};
+const arc=(cx,cz,r,a0,a1,n=64)=>{const p=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;p.push([cx+r*Math.cos(a),cz+r*Math.sin(a)])}return p};
+[[[-14,-7.5],[14,-7.5]],[[14,-7.5],[14,7.5]],[[14,7.5],[-14,7.5]],[[-14,7.5],[-14,-7.5]],[[0,-7.5],[0,7.5]]].forEach(s=>seg(s[0],s[1]));
+strip(arc(0,0,1.8,0,2*PI,72).slice(0,-1),W,true);
+const rimX=14-1.575,fx=14-5.8;
+seg([14,-2.45],[fx,-2.45]);seg([14,2.45],[fx,2.45]);seg([fx,-2.45],[fx,2.45]);
+strip(arc(fx,0,1.8,-PI/2,PI/2),W);
+for(let k=0;k<6;k++){const b0=PI/2+k*PI/6+.05;strip(arc(fx,0,1.8,b0,b0+PI/12-.02,6),W)}
+{const R3=6.75,th=Math.asin(6.6/R3),xs=Math.sqrt(R3*R3-6.6*6.6);strip(arc(rimX,0,R3,PI-th,PI+th,90),W);[-6.6,6.6].forEach(z=>seg([14,z],[rimX-xs,z]))}
+strip(arc(rimX,0,1.25,PI/2,PI*1.5,32),W);
+// hoop
+{const bm=new T.Mesh(new T.BoxGeometry(.05,1.05,1.8),new T.MeshStandardMaterial({color:0xcfe6ff,transparent:true,opacity:.35,roughness:.1}));bm.position.set(14-1.2,3.425,0);S.add(bm);
+ const be=new T.LineSegments(new T.EdgesGeometry(bm.geometry),new T.LineBasicMaterial({color:0xffffff}));be.position.copy(bm.position);S.add(be);
+ const rim=RIM=new T.Mesh(new T.TorusGeometry(.225,.014,8,32),new T.MeshStandardMaterial({color:0xff6a1a}));rim.rotation.x=PI/2;rim.position.set(rimX,3.05,0);S.add(rim);
+ const net=NETM=new T.Mesh(new T.CylinderGeometry(.225,.13,.42,16,3,true),new T.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.7}));net.position.set(rimX,2.84,0);S.add(net);
+ const pm=new T.MeshStandardMaterial({color:0x222b3d});
+ const pole=new T.Mesh(new T.BoxGeometry(.2,3.6,.2),pm);pole.position.set(14.9,1.8,0);S.add(pole);
+ const arm=new T.Mesh(new T.BoxGeometry(2.1,.14,.14),pm);arm.position.set(13.9,3.5,0);S.add(arm)}
+
+// players: one rigged model, scaled to each real height, playing its built-in Idle_A animation
+const HT=[1.88,1.98,2.06,2.11,2.16],NAMES=['Stephen Curry','Kobe Bryant','LeBron James','Giannis Antetokounmpo','Shaquille O’Neal'],FTIN=['6 ft 2 in','6 ft 6 in','6 ft 9 in','6 ft 11 in','7 ft 1 in'];
+const ENL=1,BASE=1.829;
+function numTex(n){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#ffb020';x.font='bold 100px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(n,64,70);return new T.CanvasTexture(c)}
+const PL=[];
+const POS=[[4.8,0],[7.3,-5.9],[11.2,6.1],[11.6,-2.0],[11.2,1.7]];
+const ring=(x,z)=>{const r=new T.Mesh(new T.RingGeometry(.9,1.15,40),new T.MeshBasicMaterial({color:0x6fa8ff,transparent:true,opacity:.35,side:T.DoubleSide}));r.rotation.x=-PI/2;r.position.set(x,.03,z);S.add(r);return r};
+const mixers=[];
+(function(){const _L=new T.GLTFLoader(),_P=(b,x,cb)=>fetch(GLBURL).then(r=>r.arrayBuffer()).then(b=>_L.parse(b,x,cb)); _P(null,'',gl=>{
+  const clip=gl.animations.find(a=>a.name==='Idle_A')||gl.animations[0];
+  POS.forEach((p,i)=>{
+   const m=T.SkeletonUtils.clone(gl.scene),rig=new T.Group();rig.add(m);
+   const k=HT[i]/BASE*ENL;rig.scale.setScalar(k);rig.position.set(p[0],0,p[1]);rig.rotation.y=-.6;S.add(rig);
+   let mat=null;m.traverse(o=>{if(o.isMesh||o.isSkinnedMesh){o.frustumCulled=false;mat=o.material=o.material.clone();mat.metalness=0;mat.roughness=.8;if(mat.map){mat.emissiveMap=mat.map;mat.emissive=new T.Color(0xffffff);mat.emissiveIntensity=.3}}});
+   const mx=new T.AnimationMixer(m),ac=mx.clipAction(clip);ac.play();ac.time=i*.7;mixers.push(mx);
+   const sp=new T.Sprite(new T.SpriteMaterial({map:numTex(i+1),transparent:true,depthTest:false}));const top=HT[i]*ENL+.7;sp.scale.set(.9,.9,1);sp.position.set(p[0],top,p[1]);S.add(sp);
+   const ar=new T.Mesh(new T.ConeGeometry(.28,.55,4),new T.MeshBasicMaterial({color:0xffb020}));ar.rotation.x=PI;ar.visible=false;S.add(ar);
+   PL.push({mat,sp,ring:ring(p[0],p[1]),ar,x:p[0],z:p[1],top:top+.7,rig,ac,clip,H:HT[i],w:{R:0,L:0},bones:{R:['upperarm_r','lowerarm_r','hand_r'].map(n=>m.getObjectByName(n)),L:['upperarm_l','lowerarm_l','hand_l'].map(n=>m.getObjectByName(n))}})})
+ },e=>console.error(e))})();
+const ball=new T.Mesh(new T.SphereGeometry(.12,20,16),new T.MeshStandardMaterial({color:0xd2691e,roughness:.6}));S.add(ball);
+const ball2=new T.Mesh(ball.geometry,ball.material);ball2.visible=false;S.add(ball2);let own3=true;
+
+// tour
+const P=[
+ {t:'1 · Point Guard',x:'The point guard runs the offense, like the team’s coach on the floor. This player brings the ball up the court, calls the plays, and sets up teammates with passes.',b:'Look up and scan the whole court before you pass.',c:['Best ball handler','Playmaker','Assists']},
+ {t:'2 · Shooting Guard',x:'The shooting guard is usually the team’s best outside shooter. Spacing the floor from beyond the arc, this player scores from long range and also defends the opposing guards.',b:'Get your feet set behind the arc before the pass arrives.',c:['Long-range scorer','Three-pointers','Perimeter defense']},
+ {t:'3 · Small Forward',x:'The small forward is the all-rounder. This player can score inside and outside, drive to the basket, cut for easy points, and defend many different opponents.',b:'Learn every skill: this position rewards versatility.',c:['Most versatile','Drives & cuts','Scores anywhere']},
+ {t:'4 · Power Forward',x:'The power forward plays near the basket and does the physical work: grabbing rebounds, setting screens for teammates, and scoring from close range or the mid-range.',b:'Seal your defender with your body, then power straight to the rim.',c:['Rebounder','Sets screens','Strong & physical']},
+ {t:'5 · Center',x:'The center is usually the tallest player and anchors the area under the basket. This player blocks shots, protects the rim, grabs rebounds, and scores close to the hoop.',b:'Stay near the basket and keep your hands up on defense.',c:['Rim protector','Blocks shots','Rebounds']}
+].map((o,i)=>(o.p=[POS[i][0]-3.4,2.3,POS[i][1]+3.8],o.g=[POS[i][0]+(i?.3:.6),1.2,POS[i][1]],o.f=36,o));
+const V=a=>new T.Vector3(...a);
+let cur=0,busy=false,tr=null,rest;
+cam.position.set(0,23,25);let tgtNow=new T.Vector3();
+const dots=document.getElementById('dots');
+P.forEach((_,i)=>{const d=document.createElement('button');d.className='dot';d.onclick=()=>go(i);dots.appendChild(d)});
+function fillText(i){const p=P[i];num.textContent=String(i+1).padStart(2,'0')+' / '+String(P.length).padStart(2,'0');ti.textContent=p.t;tx.textContent=p.x;ch.innerHTML=p.c.map(c=>'<span class="chip">'+c+'</span>').join('');
+ [...dots.children].forEach((d,k)=>d.classList.toggle('on',k===i))}
+// combo dribble: the active player dribbles; arms reach the ball with two-bone IK on top of Idle_A
+let DT0=0;const BEAT=.75,BR=.12;
+const COMBO=[['R','R',.4,.38,.4,.38],['R','R',.4,.38,.4,.38],['R','L',.4,.38,-.4,.38],['L','L',-.4,.38,-.4,.38],['L','L',-.4,.38,-.4,.38],['L','R',-.4,.38,.15,-.38],['R','R',.15,-.38,.42,.34],['R','R',.42,.34,.42,.34]];
+const vA=new T.Vector3(),vB=new T.Vector3(),vC=new T.Vector3(),YAX=new T.Vector3(0,1,0);
+function rotBone(bone,child,want,pivot){const cur=child.clone().sub(pivot).normalize(),w=want.clone().sub(pivot).normalize();const q=new T.Quaternion().setFromUnitVectors(cur,w);const wq=bone.getWorldQuaternion(new T.Quaternion()),pq=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(pq.invert().multiply(q.multiply(wq)));bone.updateMatrixWorld(true)}
+function rotW(bone,axis,ang){const q=new T.Quaternion().setFromAxisAngle(axis,ang),wq=bone.getWorldQuaternion(new T.Quaternion()),pq=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(pq.invert().multiply(q.multiply(wq)));bone.updateMatrixWorld(true)}
+function solve2(up,lo,hd,T3,pole){const A=up.getWorldPosition(vA).clone(),B=lo.getWorldPosition(vB).clone(),C=hd.getWorldPosition(vC).clone();
+ const l1=A.distanceTo(B),l2=B.distanceTo(C),dir=T3.clone().sub(A);let d=dir.length();dir.normalize();d=Math.min(Math.max(d,Math.abs(l1-l2)+.02),(l1+l2)*.995);
+ const x=(l1*l1-l2*l2+d*d)/(2*d),h=Math.sqrt(Math.max(l1*l1-x*x,0));const n=pole.clone().sub(dir.clone().multiplyScalar(pole.dot(dir)));if(n.lengthSq()<1e-6)n.set(0,0,1);n.normalize();
+ const E=A.clone().addScaledVector(dir,x).addScaledVector(n,h),Tp=A.clone().addScaledVector(dir,d);
+ rotBone(up,B,E,A);const B2=lo.getWorldPosition(new T.Vector3()),C2=hd.getWorldPosition(new T.Vector3());rotBone(lo,C2,Tp,B2)}
+const NM=['spine_01','spine_02','neck_01','upperarm_l','lowerarm_l','hand_l','upperarm_r','lowerarm_r','hand_r','thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r'];
+// the mixer skips bones whose idle values don't change, so IK edits would pile up each frame: re-sample Idle_A for every bone we touch before editing
+function resetPose(o){if(!o.rs){const root=o.rig.children[0];o.rs=NM.map(n=>{const b=root.getObjectByName(n),tq=o.clip.tracks.find(x=>x.name===n+'.quaternion');return b&&tq?{b,q:tq.createInterpolant()}:null}).filter(Boolean);const tp=o.clip.tracks.find(x=>x.name==='pelvis.position'),pb=root.getObjectByName('pelvis');o.pp=tp&&pb?{b:pb,q:tp.createInterpolant()}:null;const pq=o.clip.tracks.find(x=>x.name==='pelvis.quaternion');if(pq&&pb)o.rs.push({b:pb,q:pq.createInterpolant()})}
+ const tm=o.ac.time;o.rs.forEach(r=>r.b.quaternion.fromArray(r.q.evaluate(tm)));if(o.pp)o.pp.b.position.fromArray(o.pp.q.evaluate(tm));o.rig.updateMatrixWorld(true)}
+// ball logic: only position 1 dribbles; pressing Next passes the ball on to the next position, who then holds it
+let BS={h:0,mode:'dribble',from:0,to:0,t0:0,dur:1.05,turn:.7};const YAW0=-.6,SC={on:false};
+function startPass(i){const n=performance.now()/1000;
+ if(BS.mode==='loose'&&i===4)return;
+ if(BS.mode==='held'&&BS.h===4&&i!==4){BS.h=i;BS.mode=i===0?'dribble':'held';return}
+ if(BS.mode==='loose'){BS.sp=ball.position.clone();BS.from=-1;BS.to=i;BS.mode='flight';BS.dur=1.3;BS.t0=n;return}
+ BS.sp=null;BS.dur=1.05;if(BS.mode==='flight')BS.h=BS.to;if(i===BS.h){BS.mode=i===0?'dribble':'held';return}BS.from=BS.h;BS.to=i;BS.mode='turn';BS.t0=n}
+const sm=(a,b,x)=>{x=Math.min(Math.max((x-a)/(b-a),0),1);return x*x*(3-2*x)},REL=1.32,FLT=1.1;
+const shotB=s=>Math.max(.08*sm(.2,.55,s)+.09*sm(.55,.95,s)-.17*sm(.95,1.2,s)+(s>1.5&&s<1.9?.09*Math.sin(PI*(s-1.5)/.4):0),0);
+const shotJ=s=>s>1.1&&s<1.55?.16*Math.sin(PI*(s-1.1)/.45):0;
+function shotBall(o,s){const k=o.H/1.9,fw=o.bd.fw,rt=o.bd.rt,B=shotB(s),q=sm(.95,REL,s),y0=.6*o.H-.9*B*k-.08*k*sm(.55,.95,s),
+ cx=o.x+fw.x*.42*k,cz=o.z+fw.z*.42*k,sx=o.x+rt.x*.09*k+fw.x*.17*k,sz=o.z+rt.z*.09*k+fw.z*.17*k,sy=1.05*o.H+shotJ(s);
+ return new T.Vector3(cx+(sx-cx)*q,y0+(sy-y0)*q,cz+(sz-cz)*q)}
+// shooting form: knees bend and load, legs drive up into the jump, slight forward lean, feet stay planted
+function shootPose(o,s){const D=o.bd,k=o.H/1.9,B=shotB(s),dip=B*k;
+ if(!(D.pel&&D.s1&&D.s2&&D.nk&&D.legL.every(Boolean)&&D.legR.every(Boolean))||dip<.002)return;
+ const fw=D.fw,rt=D.rt,fp={};['L','R'].forEach(h=>{const f=D['leg'+h][2];fp[h]=[f.getWorldPosition(new T.Vector3()),f.getWorldQuaternion(new T.Quaternion())]});
+ const pw=D.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-dip,0)).addScaledVector(fw,-.3*dip);
+ D.pel.position.copy(D.pel.parent.worldToLocal(pw));D.pel.updateMatrixWorld(true);
+ const lean=B/.17*.26;rotW(D.s1,rt,-lean*.5);rotW(D.s2,rt,-lean*.5);rotW(D.nk,rt,lean*.8);
+ ['L','R'].forEach(h=>{const sd=h==='R'?1:-1,b=D['leg'+h];solve2(b[0],b[1],b[2],fp[h][0].clone(),fw.clone().addScaledVector(rt,sd*.08));
+  const pq=b[1].getWorldQuaternion(new T.Quaternion());b[2].quaternion.copy(pq.invert().multiply(fp[h][1]));b[2].updateMatrixWorld(true)})}
+function startShot(){busy=true;BS.mode='shoot';BS.t0=performance.now()/1000;BS.r0=null;SC.on=true}
+// LeBron-style fadeaway (position 3): step into the mid-range, rise off the floor leaning back, kick the off leg out, release, land and walk back
+const SH=.45,REL3=1.23+SH,FLT3=1.15;
+const fadeJ=(s,k)=>(s-=SH)>.85&&s<1.6?.3*k*Math.sin(PI*(s-.85)/.75):0,
+ fadeDip=(s,k)=>(s-=SH,.13*k*sm(.15,.7,s)*(1-sm(.72,.88,s))),
+ fadeL=s=>(s-=SH,.45*sm(.7,1.15,s)*(1-sm(1.6,2.3,s))),
+ fadeK=s=>(s-=SH,sm(.86,1.15,s)*(1-sm(1.3,1.62,s)));
+function fadeOff(o,s){const dx=rimX-o.x,dz=-o.z,L=Math.hypot(dx,dz),m=.4*sm(.05,.45,s)+1.3*sm(.35,.75,s)-1.4*sm(.85+SH,1.55+SH,s)-.3*sm(1.8+SH,2.8+SH,s);return[dx/L*m,dz/L*m]}
+function fadeBall0(o,s){const k=o.H/1.9,fw=o.bd.fw,rt=o.bd.rt,bx=o.rig.position.x,bz=o.rig.position.z,jy=o.rig.position.y,dip=fadeDip(s,k),lb=fadeL(s)/.45;
+ const hip=holdAt(o,bx,bz),pk=new T.Vector3(bx,.98*o.H-.9*dip,bz).addScaledVector(rt,.1*k).addScaledVector(fw,.14*k),
+  rl=new T.Vector3(bx,1.1*o.H+jy,bz).addScaledVector(rt,.09*k).addScaledVector(fw,(.12-.14*lb)*k);
+ return hip.lerp(pk,sm(.12+SH,.75+SH,s)).lerp(rl,sm(.8+SH,REL3,s))}
+// running dribble on the step-in: right-hand pound dribble at sprint cadence, then gather into the shot pocket
+function fadeBall(o,s){const k=o.H/1.9,fw=o.bd.fw,rt=o.bd.rt,b=fadeBall0(o,s),w=sm(0,.12,s)*(1-sm(.78,.98,s));if(w<.001)return b;
+ const u=(s<.4?s/.46:.4/.46+(s-.4)/.34)%1,y=.12+(.56*o.H-.12)*Math.pow(Math.abs(2*u-1),1.7);
+ const d=new T.Vector3(o.rig.position.x,y,o.rig.position.z).addScaledVector(rt,.3*k*(1-2*sm(.3,.5,s))).addScaledVector(fw,(.43+.06*Math.cos(2*PI*u))*k);ball.rotation.x+=.15;return b.lerp(d,w)}
+function fadePose(o,s){const D=o.bd,k=o.H/1.9;if(!(D.pel&&D.s1&&D.s2&&D.nk&&D.legL.every(Boolean)&&D.legR.every(Boolean)))return;
+ const G=BS.G3,air=1-sm(0,.06*k,o.rig.position.y),g=G.w*air,bob=.025*k*g*Math.abs(Math.sin(G.ph))+.03*k*g,dip=fadeDip(s,k),L=fadeL(s),K=fadeK(s),fw=D.fw,rt=D.rt,fp={};
+ ['L','R'].forEach(h=>{const f=D['leg'+h][2];fp[h]=[f.getWorldPosition(new T.Vector3()),f.getWorldQuaternion(new T.Quaternion())]});
+ const pw=D.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-dip-bob,0)).addScaledVector(fw,-.3*dip-.18*k*L/.45);
+ D.pel.position.copy(D.pel.parent.worldToLocal(pw));D.pel.updateMatrixWorld(true);
+ rotW(D.s1,rt,L*.5-.09*g);rotW(D.s2,rt,L*.5-.09*g);rotW(D.nk,rt,-L*.7+.06*g);
+ rotW(D.s1,YAX,-.06*Math.sin(G.ph)*g);rotW(D.s2,YAX,-.05*Math.sin(G.ph)*g);rotW(D.nk,YAX,.08*Math.sin(G.ph)*g);rotW(D.s1,fw,.025*Math.sin(G.ph)*g);rotW(D.s2,fw,.02*Math.sin(G.ph)*g);
+ ['L','R'].forEach(h=>{const sd=h==='R'?1:-1,b=D['leg'+h],tg=fp[h][0].clone(),gt=gaitT(G,h,k,air);tg.addScaledVector(G.mv,gt[0]);tg.y+=gt[1];
+  if(h==='L'){tg.y+=.24*k*K;tg.addScaledVector(fw,.4*k*K);tg.addScaledVector(rt,-.08*k*K)}else tg.addScaledVector(fw,-.14*k*K);
+  solve2(b[0],b[1],b[2],tg,fw.clone().addScaledVector(rt,sd*.08));
+  const pq=b[1].getWorldQuaternion(new T.Quaternion());b[2].quaternion.copy(pq.invert().multiply(fp[h][1]));b[2].updateMatrixWorld(true)})}
+function startFade(){busy=true;BS.mode='fade';BS.t0=performance.now()/1000;BS.r0=null;BS.lb=null;BS.G3=mkG();BS.G5=mkG();BS.hs=null;SC.on=true}
+// gait: foot phase advances with distance travelled, so the feet step instead of skating
+const mkG=()=>({ph:0,px:null,pz:0,pt:0,w:0,mv:new T.Vector3(0,0,1)});
+function updG(G,x,z,t){if(G.px===null){G.px=x;G.pz=z;G.pt=t;return}const dt=Math.max(t-G.pt,1e-3),dx=x-G.px,dz=z-G.pz,d=Math.hypot(dx,dz);G.ph+=d/1.8*2*PI;G.w+=(Math.min(d/dt/1.2,1)-G.w)*.25;if(d>1e-5)G.mv.lerp(new T.Vector3(dx/d,0,dz/d),.3).normalize();G.px=x;G.pz=z;G.pt=t}
+function gaitT(G,h,k,air){const g=G.w*air,ph=G.ph+(h==='R'?0:PI);return[.3*k*Math.cos(ph)*g,Math.max(0,-Math.sin(ph))*.2*k*g]}
+// ===== position 4: post-up backdown, spin past position 5, free power dunk (cinematic) =====
+const DK={Ts:3.75,RL:4.25,S2:4.45,END:6.3,SA:3.25,SB:4.4,Q:1},BMP=[1.25,1.75,2.25,2.45];
+// slow motion window around the jump: all dunk logic runs on this warped clock
+function dkS(r){const a=DK.SA,b=DK.SB,q=DK.Q,L=(b-a)/q;return r<a?r:r<a+L?a+(r-a)*q:b+(r-a-L)}
+const bump=s=>{let a=0;for(const b of BMP)if(s>=b)a+=Math.exp(-(s-b)*9)*(1-Math.exp(-(s-b)*70));return a};
+const kick=(s,t0)=>s<t0?0:Math.exp(-(s-t0)*7);
+
+function yawTo(o,dx,dz){return o.yaw0+Math.atan2(dx,dz)-Math.atan2(o.fw0.x,o.fw0.z)}
+function dunkPts(o){const k=o.H/1.9,R=[rimX,0],P0=[10.6,-1.5],dx=R[0]-P0[0],dz=R[1]-P0[1],l=Math.hypot(dx,dz),u=[dx/l,dz/l],n=[u[1],-u[0]],
+ P1=[P0[0]+u[0],P0[1]+u[1]],S=[P1[0]+n[0]*.45+u[0]*.35,P1[1]+n[1]*.45+u[1]*.35],d=Math.hypot(R[0]-S[0],R[1]-S[1]),dv=[(R[0]-S[0])/d,(R[1]-S[1])/d],
+ A=[R[0]-dv[0]*.44*k,R[1]-dv[1]*.44*k],C1=[P1[0]+u[0]*.72,P1[1]+u[1]*.72],kb=BS.kb||1,F=[C1[0]+(-n[0]*1.0+u[0]*.55)*kb,C1[1]+(-n[1]*1.0+u[1]*.55)*kb];
+ return{k,u,n,R,P0,P1,S,A,C1,F,sp:[o.x,o.z]}}
+// explosive launch, hang on the rim, drop
+const dkJ=(s,k)=>{const T0=DK.Ts,H=1.05*k;if(s<T0)return 0;const a=s-T0;
+ if(a<.5){const u=a/.5;return H*(1-(1-u)*(1-u))}
+ const sag=.4*k*sm(DK.S2,DK.S2+.35,s);if(a<.85)return H-sag;
+ if(a<1.3){const u=(a-.85)/.45;return(H-sag)*(1-u*u)}return 0};
+// position 4 path: walk to the block, three heavy backdown steps, spin round the baseline side, jump
+function dunkOff(o,s){const q=dunkPts(o),L=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],Ts=DK.Ts;
+ if(s<Ts){const p=L(q.sp,q.P0,sm(0,1,s)),st=(sm(.95,1.25,s)+sm(1.45,1.75,s)+sm(1.95,2.25,s))/3,sp2=sm(3.0,3.6,s),fk=.45*Math.sin(PI*sm(2.35,2.75,s));
+  return[p[0]+(q.P1[0]-q.P0[0])*st+(q.S[0]-q.P1[0])*sp2+q.u[0]*fk,p[1]+(q.P1[1]-q.P0[1])*st+(q.S[1]-q.P1[1])*sp2+q.u[1]*fk]}
+ const a=s-Ts;if(a<1.4){const e=Math.min(a/.5,1);return L(q.S,q.A,1-(1-e)*(1-e))}
+ return L(q.A,q.sp,sm(Ts+1.4,Ts+2.3,s))}
+// position 5 path: sets up behind the shooter, gets driven back, is shoved aside and left behind
+function dunkCtr(o,pf,q,s){const home=[o.x,o.z],se=Math.min(s,2.4),P=dunkOff(pf,se),g=.74+.2*bump(se),base=[P[0]+q.u[0]*g,P[1]+q.u[1]*g],w=sm(0,.9,s);
+ let c=[home[0]+(base[0]-home[0])*w,home[1]+(base[1]-home[1])*w];
+ if(s>2.4){const x=sm(2.5,2.9,s),b=1-(1-x)*(1-x)*(1-x);c=[base[0]+(q.F[0]-base[0])*b,base[1]+(q.F[1]-base[1])*b];const wb=.14*Math.sin((s-2.5)*8)*sm(2.5,2.8,s)*(1-sm(3.4,4.4,s));c[0]+=q.n[0]*wb;c[1]+=q.n[1]*wb}
+ const r=sm(5.2,6.0,s);return[c[0]+(home[0]-c[0])*r,c[1]+(home[1]-c[1])*r]}
+function dunkYaw(o,q,s){const a0=yawTo(o,-q.u[0],-q.u[1]),a1=yawTo(o,q.R[0]-q.S[0],q.R[1]-q.S[1]),sw=(((a0-a1)%(2*PI))+2*PI)%(2*PI);return a0-sw*sm(3.0,3.55,s)}
+function dunkBase(o,s){const k=o.H/1.9,fw=o.bd.fw,rt=o.bd.rt,bx=o.rig.position.x,bz=o.rig.position.z,jy=o.rig.position.y,Ts=DK.Ts;
+ const ch=holdAt(o,bx,bz),ov=new T.Vector3(bx,1.2*o.H+.05+jy,bz).addScaledVector(rt,.02*k).addScaledVector(fw,(.22+.22*sm(Ts+.15,Ts+.45,s))*k);return ch.lerp(ov,sm(Ts-.1,Ts+.3,s))}
+function dunkBall(o,s){const b=dunkBase(o,s),w=sm(.5,.65,s)*(1-sm(2.35,2.55,s));if(w<.001)return b;
+ const k=o.H/1.9,u=(s/.5)%1,y=.12+(.5*o.H-.12)*Math.pow(Math.abs(2*u-1),1.7);
+ const d=new T.Vector3(o.rig.position.x,y,o.rig.position.z).addScaledVector(o.bd.rt,.32*k).addScaledVector(o.bd.fw,.38*k);ball.rotation.x+=.15;return b.lerp(d,w)}
+function dunkPose(o,s){const D=o.bd,k=o.H/1.9;if(!(D.pel&&D.s1&&D.s2&&D.nk&&D.legL.every(Boolean)&&D.legR.every(Boolean)))return;
+ const G=BS.G4,Ts=DK.Ts,air=1-sm(0,.06*k,o.rig.position.y),g=G.w*air,bmp=bump(s),post=sm(.7,1.1,s)*(1-sm(2.8,3.2,s)),
+  bob=.025*k*g*Math.abs(Math.sin(G.ph))+.03*k*g,
+  dip=.15*k*post+.03*k*bmp*post+.2*k*sm(Ts-.22,Ts-.04,s)*(1-sm(Ts-.02,Ts+.1,s)),
+  fl=.26*post+.06*bmp*post,L=.1*sm(Ts+.25,Ts+.45,s)*(1-sm(Ts+.6,Ts+.85,s)),K=sm(Ts+.1,Ts+.3,s)*(1-sm(Ts+.65,Ts+.95,s)),
+  tw=-.4*Math.sin(PI*sm(3.0,3.55,s)),fk=0,fw=D.fw,rt=D.rt,fp={};
+ ['L','R'].forEach(h=>{const f=D['leg'+h][2];fp[h]=[f.getWorldPosition(new T.Vector3()),f.getWorldQuaternion(new T.Quaternion())]});
+ const pw=D.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-dip-bob,0)).addScaledVector(fw,-.22*k*bmp*post);D.pel.position.copy(D.pel.parent.worldToLocal(pw));D.pel.updateMatrixWorld(true);
+ const ln=L-fl;rotW(D.s1,rt,ln*.5-.09*g);rotW(D.s2,rt,ln*.5-.09*g);rotW(D.nk,rt,-ln*.5+.06*g);
+ rotW(D.s1,YAX,tw*.5-.05*Math.sin(G.ph)*g);rotW(D.s2,YAX,tw*.5-.04*Math.sin(G.ph)*g);rotW(D.nk,YAX,-tw*.4+.45*fk);rotW(D.s1,YAX,.2*fk);rotW(D.s2,YAX,.15*fk);
+ ['L','R'].forEach(h=>{const sd=h==='R'?1:-1,b=D['leg'+h],tg=fp[h][0].clone(),gt=gaitT(G,h,k,air);
+  tg.addScaledVector(rt,sd*.12*k*post*(1-g));tg.addScaledVector(G.mv,gt[0]);tg.y+=gt[1];
+  if(h==='R'){tg.y+=.36*k*K;tg.addScaledVector(fw,.3*k*K)}else{tg.y+=.28*k*K;tg.addScaledVector(fw,.15*k*K)}
+  solve2(b[0],b[1],b[2],tg,fw.clone().addScaledVector(rt,sd*.08));
+  const pq=b[1].getWorldQuaternion(new T.Quaternion());b[2].quaternion.copy(pq.invert().multiply(fp[h][1]));b[2].updateMatrixWorld(true)})}
+// position 5: wide anchored stance, leans into the backdown, then is shoved off balance
+function postDefPose(o,s){const D=o.bd,k=o.H/1.9;if(!(D.pel&&D.s1&&D.s2&&D.nk&&D.legL.every(Boolean)&&D.legR.every(Boolean)))return;
+ const G=BS.G5,g=G.w,st=sm(.5,1.0,s)*(1-sm(2.5,2.65,s)),bmp=bump(s),fall=sm(2.5,2.85,s)*(1-sm(3.5,4.4,s))*(.8+.2*Math.sin(s*8)),cf=sm(2.55,3.0,s)*(1-sm(3.6,4.4,s)),cn=sm(3.2,3.6,s)*(1-sm(5.2,5.7,s)),
+  dip=.1*k*st+.05*k*bmp*st+.08*k*fall+.025*k*g*Math.abs(Math.sin(G.ph)),fw=D.fw,rt=D.rt,fp={};
+ ['L','R'].forEach(h=>{const f=D['leg'+h][2];fp[h]=[f.getWorldPosition(new T.Vector3()),f.getWorldQuaternion(new T.Quaternion())]});
+ const pw=D.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-dip,0)).addScaledVector(fw,-.3*k*bmp*st);D.pel.position.copy(D.pel.parent.worldToLocal(pw));D.pel.updateMatrixWorld(true);
+ const ln=-.12*st+.35*bmp*st+.9*fall*(BS.kb>1?1.8:1);rotW(D.s1,rt,ln*.6);rotW(D.s2,rt,ln*.5);rotW(D.nk,rt,-ln*.4);rotW(D.s2,YAX,.3*cf);rotW(D.s1,fw,.3*fall*Math.sin(s*7));rotW(D.s2,fw,.2*fall*Math.sin(s*7+1));
+ ['L','R'].forEach(h=>{const sd=h==='R'?1:-1,b=D['leg'+h],tg=fp[h][0].clone(),gt=gaitT(G,h,k,1);
+  tg.addScaledVector(rt,sd*.1*k*st*(1-g));tg.addScaledVector(G.mv,gt[0]);tg.y+=gt[1];
+  solve2(b[0],b[1],b[2],tg,fw.clone().addScaledVector(rt,sd*.08));
+  const pq=b[1].getWorldQuaternion(new T.Quaternion());b[2].quaternion.copy(pq.invert().multiply(fp[h][1]));b[2].updateMatrixWorld(true)})}
+// position 5 hands: planted on the shooter's back while backed down, then thrown up late
+function postDefHands(o,s,w){if(s<.5||s>5.4)return;const P=PL[3],pf=P.rig.position,kp=P.H/1.9,kc=o.H/1.9,b=o.rig.position,on=0,up=sm(2.5,2.9,s)*(1-sm(4.6,5.3,s));
+ ['R','L'].forEach(h=>{const sd=h==='R'?1:-1,
+  back=P.bd.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,.12*kp,0)).addScaledVector(P.bd.rt,sd*.2*kp).addScaledVector(P.bd.fw,-.2*kp),
+  own=new T.Vector3(b.x,.82*o.H,b.z).addScaledVector(o.bd.rt,sd*.4*kc).addScaledVector(o.bd.fw,.2*kc),
+  hi=new T.Vector3(b.x,1.0*o.H+.3*kc*Math.cos(s*9+(sd>0?0:PI)),b.z).addScaledVector(o.bd.rt,sd*.5*kc+.35*kc*Math.sin(s*9+(sd>0?0:PI))).addScaledVector(o.bd.fw,.15*kc);
+  w[h]=own.lerp(back,on).lerp(hi,up*(1-on))})}
+function startDunk(){busy=true;BS.mode='dunk';BS.t0=performance.now()/1000;BS.lb=null;BS.hs=null;BS.G4=mkG();BS.G5=mkG();BS.cp=cam.position.clone();BS.kb=2.1;SC.on=true}
+// cinematic camera: telephoto orbit around the post battle, shake on every bump, low baseline angle for the slow-mo dunk, pull-back to reveal
+function dunkCam(t){const r=t-BS.t0,s=dkS(r),o=PL[3],q=dunkPts(o),pf=o.rig.position,cc=PL[4].rig.position,Ts=DK.Ts,
+ mid=new T.Vector3((pf.x+cc.x)/2,1.15,(pf.z+cc.z)/2),sh=.012*bump(s)+.03*kick(s,DK.S2)+.05*(BS.kb||1)*kick(s,2.45)+.02*bump(s);let des,look,fv;
+ if(s<3.6){const ph=Math.atan2(-q.n[1],-q.n[0])+PI*sm(.5,3.6,s),rad=6.4-.8*sm(.5,2.2,s),h=2.3-.1*sm(.8,2,s)+.1*sm(2.8,3.6,s);
+  des=new T.Vector3(mid.x+Math.cos(ph)*rad,h,mid.z+Math.sin(ph)*rad);look=mid.clone();look.y=1.25;fv=40}
+ else{const a=sm(3.6,4.6,s),b=sm(4.9,6.0,s),body=new T.Vector3(pf.x+.1,pf.y*.6+1.4,pf.z);
+  des=new T.Vector3(13.8-.6*a-.8*b,2.3+.2*a+.5*b,-5.0-.2*a-.4*b);look=body.lerp(new T.Vector3(mid.x,1.2,mid.z),b);fv=42-2*b}
+ BS.cp.lerp(des,s<.6?.05:.08);tgtNow.lerp(look,.12);
+ const nz=new T.Vector3(Math.sin(r*83),Math.sin(r*71+1.3),Math.sin(r*97+.7)).multiplyScalar(sh);cam.position.copy(BS.cp).add(nz);
+ const bf=cam.userData.bf||36;cam.userData.bf=bf+(fv-bf)*.05;cam.fov=Math.min(80,cam.userData.bf*AF);cam.updateProjectionMatrix();cam.lookAt(tgtNow.clone().addScaledVector(nz,.4))}
+// position 5 closes out on the shooter, sets a wide stance, then jumps with both hands up to contest
+function defPose(o,s){const D=o.bd,k=o.H/1.9;if(!(D.pel&&D.s1&&D.s2&&D.nk&&D.legL.every(Boolean)&&D.legR.every(Boolean)))return;
+ const G=BS.G5,air=1-sm(0,.06*k,o.rig.position.y),g=G.w*air,st=sm(.15,.45,s)*(1-sm(2.3,2.8,s)),dip=.07*k*st*(1-sm(1.4,1.55,s))+.025*k*g*Math.abs(Math.sin(G.ph)),fw=D.fw,rt=D.rt,fp={};
+ ['L','R'].forEach(h=>{const f=D['leg'+h][2];fp[h]=[f.getWorldPosition(new T.Vector3()),f.getWorldQuaternion(new T.Quaternion())]});
+ const pw=D.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-dip,0));D.pel.position.copy(D.pel.parent.worldToLocal(pw));D.pel.updateMatrixWorld(true);
+ const ln=.06*st+.07*g;rotW(D.s1,rt,-ln*.5);rotW(D.s2,rt,-ln*.5);
+ ['L','R'].forEach(h=>{const sd=h==='R'?1:-1,b=D['leg'+h],tg=fp[h][0].clone(),gt=gaitT(G,h,k,air);
+  tg.addScaledVector(rt,sd*.1*k*st*(1-g));tg.addScaledVector(G.mv,gt[0]);tg.y+=gt[1];
+  solve2(b[0],b[1],b[2],tg,fw.clone().addScaledVector(rt,sd*.08));
+  const pq=b[1].getWorldQuaternion(new T.Quaternion());b[2].quaternion.copy(pq.invert().multiply(fp[h][1]));b[2].updateMatrixWorld(true)})}
+function defHands(o,s,w){if(s<.1||s>2.3)return;const k=o.H/1.9,fw=o.bd.fw,rt=o.bd.rt,b=o.rig.position,up=sm(1.35,1.65,s);
+ ['R','L'].forEach(h=>{const sd=h==='R'?1:-1,wide=new T.Vector3(b.x,.82*o.H,b.z).addScaledVector(rt,sd*.5*k).addScaledVector(fw,.22*k),hi=new T.Vector3(b.x,1.08*o.H+b.y,b.z).addScaledVector(rt,sd*.14*k).addScaledVector(fw,.2*k);w[h]=wide.lerp(hi,up)})}
+// camera chases the ball during the shot
+function shotCam(t){const s=t-BS.t0,o=rest.tp,sh=PL[BS.h],pre=(BS.mode==='fade'?REL3:REL)-.12,dx=rimX-sh.x,dz=-sh.z,L=Math.hypot(dx,dz),dr=new T.Vector3(dx/L,0,dz/L),sd=new T.Vector3(-dr.z,0,dr.x);let des,look=null;
+ if(s<pre)des=new T.Vector3(o.x+Math.sin(t*.35)*.7,o.y+Math.sin(t*.5)*.2,o.z+Math.cos(t*.35)*.4);
+ else{des=ball.position.clone().addScaledVector(dr,-3.6).addScaledVector(sd,2.2);des.y=Math.max(ball.position.y+.9,1.5);look=ball.position.clone().addScaledVector(dr,.5)}
+ cam.position.lerp(des,s<pre?.1:.07);if(look)tgtNow.lerp(look,.14);
+ const bf=cam.userData.bf||36;cam.userData.bf=bf+((s<pre?36:48)-bf)*.04;cam.fov=Math.min(80,cam.userData.bf*AF);cam.updateProjectionMatrix();cam.lookAt(tgtNow)}
+function initO(o){if(o.bd)return;const rig=o.rig,g=n=>rig.children[0].getObjectByName(n);
+ const toe=g('ball_l'),ft=g('foot_l'),pel=g('pelvis'),hr=g('hand_r');
+ const fw=toe.getWorldPosition(new T.Vector3()).sub(ft.getWorldPosition(new T.Vector3()));fw.y=0;fw.normalize();
+ const rt=new T.Vector3().crossVectors(fw,YAX);
+ const side=hr.getWorldPosition(new T.Vector3()).sub(pel.getWorldPosition(new T.Vector3())).dot(rt)>0?'r':'l',oth=side==='r'?'l':'r';
+ const leg=s=>['thigh_'+s,'calf_'+s,'foot_'+s].map(g),arm=s=>['upperarm_'+s,'lowerarm_'+s,'hand_'+s].map(g);
+ o.fw0=fw.clone();o.yaw0=rig.rotation.y;o.bd={fw,rt,pel,s1:g('spine_01'),s2:g('spine_02'),nk:g('neck_01'),legR:leg(side),legL:leg(oth),armR:arm(side),armL:arm(oth)}}
+// hold point: players 1,2,4,5 carry the ball at the chest; player 3 cradles it low at the right hip (triple-threat)
+function holdAt(o,x,z){const k=o.H/1.9,D=o.bd;return new T.Vector3(x,.6*o.H,z).addScaledVector(D.fw,.42*k)}
+const chest=o=>holdAt(o,o.x,o.z);
+function hands(w,o,bp){const D=o.bd;
+ ['R','L'].forEach(h=>{w[h]=bp.clone().addScaledVector(D.rt,(h==='R'?1:-1)*.15).addScaledVector(D.fw,-.08)})}
+function armTo(o,h,tg){let wd=!!tg;if(tg){o.lt=o.lt||{};o.lt[h]=tg.clone()}else tg=o.lt&&o.lt[h];
+ o.w[h]+=((wd?1:0)-o.w[h])*.14;if(o.w[h]<.03||!tg)return;const D=o.bd,b=D['arm'+h];if(!b[0]||!b[1]||!b[2])return;
+ const sg=h==='R'?1:-1,pole=(o.po&&o.po[h])||D.rt.clone().multiplyScalar(sg).addScaledVector(D.fw,-.5).add(new T.Vector3(0,-.3,0));
+ const C=b[2].getWorldPosition(new T.Vector3());solve2(b[0],b[1],b[2],C.lerp(tg,o.w[h]),pole)}
+function dribble(t){hl.intensity*=BS.mode==="block"?1:.85;PL.forEach(resetPose);if(!PL.length)return;
+ if(BS.mode==='turn'&&t-BS.t0>=BS.turn){BS.mode='flight';BS.t0=t}
+ // passer turns to face the receiver before the ball is released, then turns back
+ ball.visible=true;if(NETM&&BS.mode!=='shoot')NETM.scale.set(1,1,1);if(RIM&&BS.mode!=='dunk'){RIM.position.y=3.05;NETM.position.y=2.84}
+ PL.forEach((o,i)=>{initO(o);o.po=null;let ty=YAW0,gn=.14;
+  let tg=null;
+  if((BS.mode==='turn'||BS.mode==='flight')&&i===BS.from&&!(BS.mode==='flight'&&(t-BS.t0)/BS.dur>.6))tg={x:PL[BS.to].x,z:PL[BS.to].z};
+  else if((BS.mode==='shoot'||BS.mode==='fade')&&i===BS.h)tg={x:rimX,z:0};
+  else if(BS.mode==='fade'&&i===4)tg={x:PL[2].rig.position.x,z:PL[2].rig.position.z};
+  if(tg)ty=o.yaw0+(Math.atan2(tg.x-o.x,tg.z-o.z)-Math.atan2(o.fw0.x,o.fw0.z));
+  let jy=0,ox=o.x,oz=o.z;if(BS.mode==='shoot'&&i===BS.h)jy=shotJ(t-BS.t0);
+  else if(BS.mode==='fade'&&i===BS.h){const fs=t-BS.t0,fo=fadeOff(o,fs);jy=fadeJ(fs,o.H/1.9);ox+=fo[0];oz+=fo[1];updG(BS.G3,ox,oz,t)}
+  else if(BS.mode==='fade'&&i===4){const fs=t-BS.t0,P=PL[2].rig.position,ux=rimX-P.x,uz=-P.z,l=Math.hypot(ux,uz),Tx=P.x+ux/l*1.25,Tz=P.z+uz/l*1.25,w=sm(.1,1.15,fs)*(1-sm(2.3,3.3,fs));
+   ox=o.x+w*(Tx-o.x);oz=o.z+w*(Tz-o.z);{const sx=P.x-o.x,sz=P.z-o.z,sl=Math.hypot(sx,sz),nx_=sx/sl,nz_=sz/sl,bk=-.4*sm(0,.3,fs)*(1-sm(.3,.75,fs)),lt=.45*Math.sin(PI*sm(.28,.68,fs));ox+=nx_*bk-nz_*lt;oz+=nz_*bk+nx_*lt}jy=fs>1.52&&fs<2.12?.25*o.H/1.9*Math.sin(PI*(fs-1.52)/.6):0;updG(BS.G5,ox,oz,t)}
+  else if(BS.mode==='dunk'&&i===BS.h){const fs=dkS(t-BS.t0),q=dunkPts(o),f=dunkOff(o,fs);jy=dkJ(fs,o.H/1.9);ox=f[0];oz=f[1];updG(BS.G4,ox,oz,t);ty=dunkYaw(o,q,fs);gn=fs>2.9&&fs<3.7?.3:.14}
+  else if(BS.mode==='dunk'&&i===4){const fs=dkS(t-BS.t0),pf=PL[3],q=dunkPts(pf),f=dunkCtr(o,pf,q,fs);ox=f[0];oz=f[1];updG(BS.G5,ox,oz,t);const pp=dunkOff(pf,fs),fl=sm(2.5,2.8,fs)*(1-sm(3.7,4.4,fs)),fx=pp[0]+(q.P1[0]-q.n[0]*1.6-pp[0])*fl,fz=pp[1]+(q.P1[1]-q.n[1]*1.6-pp[1])*fl;ty=yawTo(o,fx-ox,fz-oz)}
+  else if(BS.mode==='block'&&i===2){const bs=blkS(t-BS.t0),f=blkP3(o,bs);jy=jmp(bs,1.6,.95*o.H/1.9,.5,.1,.45);ox=f[0];oz=f[1];updG(BS.G4,ox,oz,t);ty=yawTo(o,rimX-ox,-oz)}
+  else if(BS.mode==='block'&&i===4){const bs=blkS(t-BS.t0),f=blkP5(o,bs),pd=blkP3(PL[2],bs);jy=jmp(bs,1.45-D5,o.H/1.9,.55,.15,.65);ox=f[0];oz=f[1];updG(BS.G5,ox,oz,t);ty=yawTo(o,pd[0]-ox,pd[1]-oz)}
+  if(o.rig.position.y!==jy||o.rig.position.x!==ox||o.rig.position.z!==oz){o.rig.position.set(ox,jy,oz);o.rig.updateMatrixWorld(true)}
+  let d=ty-o.rig.rotation.y;d=((d+PI)%(2*PI)+2*PI)%(2*PI)-PI;
+  if(Math.abs(d)>.001){o.rig.rotation.y+=d*gn;o.rig.updateMatrixWorld(true)}
+  const a=o.rig.rotation.y-o.yaw0;o.bd.fw.copy(o.fw0).applyAxisAngle(YAX,a);o.bd.rt.crossVectors(o.bd.fw,YAX)});
+ if(BS.mode==='flight'&&t-BS.t0>=BS.dur){BS.h=BS.to;BS.mode=BS.h===0?'dribble':'held';if(BS.h===0)DT0=t}
+ const W=PL.map(()=>({R:null,L:null}));let dribbling=false;
+ if(BS.mode==='turn'){const A=PL[BS.from];ball.position.copy(chest(A));ball.position.y+=Math.sin(t*2)*.012;hands(W[BS.from],A,ball.position)}
+ else if(BS.mode==='flight'){const A=BS.from>=0?PL[BS.from]:null,B=PL[BS.to];if(A)initO(A);initO(B);const uu=Math.min(Math.max((t-BS.t0)/BS.dur,0),1);
+  ball.position.lerpVectors(BS.sp||chest(A),chest(B),uu);ball.position.y+=.55*Math.sin(Math.PI*uu);ball.rotation.x+=.2;
+  if(A&&uu<.3)hands(W[BS.from],A,ball.position);if(uu>.55)hands(W[BS.to],B,ball.position)}
+ else if(BS.mode==='held'){const H=PL[BS.h];initO(H);if(BS.h===4)ball.visible=false;else{ball.position.copy(chest(H));ball.position.y+=Math.sin(t*2)*.012;hands(W[BS.h],H,ball.position)}}
+ else if(BS.mode==='shoot'){const o1=PL[BS.h],s=t-BS.t0,k1=o1.H/1.9,fw=o1.bd.fw,rt=o1.bd.rt,rimEnd=REL+FLT;
+  if(s<REL)ball.position.copy(shotBall(o1,s));
+  else if(s<rimEnd){if(!BS.r0)BS.r0=shotBall(o1,REL);const u=(s-REL)/FLT,r0=BS.r0;
+   ball.position.set(r0.x+(rimX-r0.x)*u,r0.y+(3.05-r0.y)*u+9.2*u*(1-u),r0.z*(1-u));ball.rotation.x-=.25}
+  else{const f=s-rimEnd,y=3.05-2.8*f-4.9*f*f;ball.position.set(rimX,Math.max(y,2.55),0);if(y<2.58)ball.visible=false}
+  if(NETM){const f=s-rimEnd,g=f>0&&f<.5?Math.sin(PI*f/.5)*(1-f/.5*.4):0;NETM.scale.set(1+.22*g,1+.14*g,1+.22*g)}
+  // hands: shooting hand under the ball, guide hand on the side, then follow-through
+  const bp=ball.position,up=new T.Vector3(0,-.1,0);let hR=null,hL=null;
+  if(s<REL){hR=bp.clone().add(up);hL=bp.clone().addScaledVector(rt,-.11).add(new T.Vector3(0,.01,0))}
+  else if(s<REL+.6){const r0=BS.r0||bp,h0=r0.clone().add(up),h1=r0.clone().addScaledVector(fw,.22*k1).add(new T.Vector3(0,.12*k1,0));hR=h0.lerp(h1,sm(REL,REL+.22,s))}
+  W[BS.h].R=hR;W[BS.h].L=hL;
+  o1.po={R:new T.Vector3(0,-1,0).addScaledVector(rt,.35).addScaledVector(fw,.15),L:new T.Vector3(0,-1,0).addScaledVector(rt,-.5)};
+  if(s>=rimEnd+.55){BS.mode='held';BS.h=2;own3=false;SC.on=false;busy=false;ball.visible=true;go(2)}}
+ else if(BS.mode==='fade'){const o1=PL[BS.h],s=t-BS.t0,k1=o1.H/1.9,fw=o1.bd.fw,rt=o1.bd.rt,rimEnd=REL3+FLT3,rg=o1.rig.position;
+  if(s<REL3){ball.position.copy(fadeBall(o1,s));BS.lb=ball.position.clone();BS.lr=rg.clone()}
+  else if(s<rimEnd){const u=(s-REL3)/FLT3,r0=BS.lb;
+   ball.position.set(r0.x+(rimX-r0.x)*u,r0.y+(3.05-r0.y)*u+9.2*u*(1-u),r0.z*(1-u));ball.rotation.x-=.25}
+  else{const f=s-rimEnd,y=3.05-2.8*f-4.9*f*f;ball.position.set(rimX,Math.max(y,2.55),0);if(y<2.58)ball.visible=false}
+  if(NETM){const f=s-rimEnd,g=f>0&&f<.5?Math.sin(PI*f/.5)*(1-f/.5*.4):0;NETM.scale.set(1+.22*g,1+.14*g,1+.22*g)}
+  const bp=ball.position,up=new T.Vector3(0,-.1,0),a=sm(.12+SH,.75+SH,s);let hR=null,hL=null;
+  if(s<REL3){const oR=new T.Vector3(0,0,0).addScaledVector(rt,.15).addScaledVector(fw,-.08).lerp(up,a),oL=new T.Vector3(0,0,0).addScaledVector(rt,-.15).addScaledVector(fw,-.08).lerp(new T.Vector3(0,.01,0).addScaledVector(rt,-.11),a);
+   hR=bp.clone().add(oR);hL=bp.clone().add(oL);
+   const dw=sm(0,.12,s)*(1-sm(.78,.98,s));if(dw>.001){const hd=new T.Vector3(bp.x,Math.max(bp.y+.17,.4*o1.H),bp.z);BS.hs=BS.hs?BS.hs.lerp(hd,.3):hd.clone();const wl=sm(.33,.47,s),pp=(.2+.04*Math.sin(BS.G3.ph))*k1,gL=new T.Vector3(rg.x,.66*o1.H,rg.z).addScaledVector(rt,-.3*k1).addScaledVector(fw,pp),gR=new T.Vector3(rg.x,.66*o1.H,rg.z).addScaledVector(rt,.3*k1).addScaledVector(fw,pp);
+    hR=hR.lerp(gR.lerp(BS.hs,1-wl),dw);hL=hL.lerp(gL.lerp(BS.hs,wl),dw)}}
+  else if(s<REL3+.65){const r0=BS.lb.clone().add(rg).sub(BS.lr),h0=r0.clone().add(up),h1=r0.clone().addScaledVector(fw,.22*k1).add(new T.Vector3(0,.12*k1,0));hR=h0.lerp(h1,sm(REL3,REL3+.22,s));if(s<REL3+.12)hL=bp.clone().addScaledVector(rt,-.11)}
+  W[BS.h].R=hR;W[BS.h].L=hL;
+  o1.po={R:new T.Vector3(0,-1,0).addScaledVector(rt,.35).addScaledVector(fw,.15),L:new T.Vector3(0,-1,0).addScaledVector(rt,-.5)};
+  if(s>=rimEnd+.55){BS.mode='held';BS.h=3;SC.on=false;busy=false;ball.visible=true;go(3)}}
+ else if(BS.mode==='dunk'){const o1=PL[BS.h],s=dkS(t-BS.t0),k1=o1.H/1.9,fw=o1.bd.fw,rt=o1.bd.rt,rg=o1.rig.position,RL=DK.RL,S2=DK.S2,Ts=DK.Ts,w5=W[BS.h];
+  if(s<RL){ball.position.copy(dunkBall(o1,s));BS.lb=ball.position.clone()}
+  else if(s<S2){ball.position.copy(BS.lb).lerp(new T.Vector3(rimX,3.02,0),sm(RL,S2,s))}
+  else{const f=s-S2,y=3.02-2.8*f-4.9*f*f;ball.position.set(rimX,Math.max(y,2.55),0);if(y<2.58)ball.visible=false}
+  if(NETM){const f=s-S2,g=f>0&&f<.5?Math.sin(PI*f/.5)*(1-f/.5*.4):0;NETM.scale.set(1+.22*g,1+.14*g,1+.22*g);
+   const dr=.14*sm(S2-.04,S2+.06,s)*(1-sm(Ts+.8,Ts+.95,s))+.012*Math.sin(s*70)*sm(S2,S2+.1,s)*(1-sm(S2+.6,S2+1.3,s));NETM.position.y=2.84-dr;if(RIM)RIM.position.y=3.05-dr}
+  if(s<RL){hands(w5,o1,ball.position);const dw=sm(.5,.65,s)*(1-sm(2.35,2.55,s));
+   if(dw>.001){const bp=ball.position,hd=new T.Vector3(bp.x,Math.max(bp.y+.13,.26*o1.H),bp.z);BS.hs=BS.hs?BS.hs.lerp(hd,.55):hd.clone();
+    const cl=holdAt(o1,rg.x,rg.z).addScaledVector(rt,-.18*k1);w5.R=w5.R.lerp(BS.hs,dw);w5.L=w5.L.lerp(cl,dw)}}
+  else if(s<S2){hands(w5,o1,ball.position)}
+  else if(s<Ts+.85){const e=sm(S2,S2+.1,s),a0=new T.Vector3(rimX,3.3,-.05);w5.R=a0.clone().addScaledVector(rt,.15).lerp(new T.Vector3(rimX-.17,3.08,-.17),e);w5.L=a0.clone().addScaledVector(rt,-.15).lerp(new T.Vector3(rimX+.17,3.08,-.17),e)}
+  o1.po={R:new T.Vector3(0,-1,0).addScaledVector(rt,.4),L:new T.Vector3(0,-1,0).addScaledVector(rt,-.4)};
+  if(s>=DK.END){BS.mode='held';BS.h=4;SC.on=false;busy=false;ball.visible=true;go(4)}} else if(BS.mode==='block'){const o1=PL[2],s=blkS(t-BS.t0),k1=o1.H/1.9,rg=o1.rig.position,rt=o1.bd.rt,p5=PL[4].rig.position,pv=ball.position.clone();if(s>=TB&&!BS.hit){BS.hit=1;BM.copy(pv)}ball.position.copy(blkBall(o1,s));
+  if(s<TB+.45){if(s<1.3){const bp=ball.position,hd=new T.Vector3(bp.x,Math.max(bp.y+.13,.26*o1.H),bp.z);BS.hs=BS.hs?BS.hs.lerp(hd,.55):hd.clone();W[2].R=BS.hs.clone();W[2].L=holdAt(o1,rg.x,rg.z).addScaledVector(rt,-.18*k1)}else hands(W[2],o1,s<TB?ball.position:blkOv(o1,s))}
+  o1.po={R:new T.Vector3(0,-1,0).addScaledVector(rt,.4),L:new T.Vector3(0,-1,0).addScaledVector(rt,-.4)};
+  hl.position.set(p5.x,p5.y+2.6,p5.z);hl.intensity=(1.4*sm(.2,1,s)+3*kick(s,TB))*(1-sm(3.2,3.9,s));bkEl.classList.toggle('on',s>TB&&s<3.3);
+  if(s>=3.9){BS.h=4;BS.mode='loose';SC.on=false;busy=false;hl.intensity=0;bkEl.classList.remove('on');blkDone=true;go(4)}} else if(BS.mode==='loose'){}
+ else dribbling=true;
+ // position 1: body + dribble (amp fades in/out so the pose never snaps)
+ const o=PL[0];o.ba=(o.ba||0)+((dribbling?1:0)-(o.ba||0))*.08;
+ if(dribbling||o.ba>.01){initO(o);const D=o.bd,fw=D.fw,rt=D.rt,up=new T.Vector3().crossVectors(YAX,fw),amp=o.ba;
+  const ct=(t-DT0)%(BEAT*COMBO.length),bi=Math.floor(ct/BEAT),u=(ct-bi*BEAT)/BEAT,c=COMBO[bi],k=o.H/1.9,Hb=.48*o.H,e=u*u*(3-2*u),xrc=c[2]+(c[4]-c[2])*e;
+  if(D.pel&&D.s1&&D.s2&&D.nk&&D.legL.every(Boolean)&&D.legR.every(Boolean)){
+   const dip=(.06+(bi===2||bi===5?.05*Math.sin(Math.PI*u):0))*k*amp,fp={};
+   ['L','R'].forEach(h=>{const f=D['leg'+h][2];fp[h]=[f.getWorldPosition(new T.Vector3()),f.getWorldQuaternion(new T.Quaternion())]});
+   const pw=D.pel.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-dip,0)).addScaledVector(rt,xrc*.08*k*amp).addScaledVector(fw,-.03*k*amp);
+   D.pel.position.copy(D.pel.parent.worldToLocal(pw));D.pel.updateMatrixWorld(true);
+   rotW(D.s1,up,.16*amp);rotW(D.s2,up,.12*amp);rotW(D.nk,up,-.2*amp);
+   const odd=bi%2,s=Math.sin(Math.PI*u);
+   ['L','R'].forEach(h=>{const lead=(h==='L')===(odd===0),tg=fp[h][0].clone(),sd=h==='R'?1:-1;
+    tg.addScaledVector(rt,-sd*.05*k*amp);if(bi===5)tg.addScaledVector(rt,sd*.2*s*k*amp);else if(lead&&(bi===2||bi===6)){tg.y+=.14*s*k*amp;tg.addScaledVector(fw,.14*s*k*amp)}
+    const b=D['leg'+h];solve2(b[0],b[1],b[2],tg,fw.clone().addScaledVector(rt,sd*.08));
+    const pq=b[1].getWorldQuaternion(new T.Quaternion());b[2].quaternion.copy(pq.invert().multiply(fp[h][1]));b[2].updateMatrixWorld(true)})}
+  if(dribbling){const lx=xrc*k,lz=(c[3]+(c[5]-c[3])*e)*k,y=BR+(Hb-BR)*Math.pow(Math.abs(2*u-1),1.7);
+   ball.position.set(o.x,y,o.z).addScaledVector(rt,lx).addScaledVector(fw,lz);ball.rotation.x+=.15;
+   const asg=u<.55?c[0]:c[1],raw=new T.Vector3(ball.position.x,Math.max(y+.17,.4*o.H),ball.position.z);o.sm=o.sm?o.sm.lerp(raw,.28):raw.clone();W[0][asg]=o.sm.clone()}}
+
+ if(BS.h===2||(BS.to===2&&(BS.mode==='flight'||BS.mode==='turn')))own3=false;
+ ball2.visible=own3;if(own3){const H3=PL[2];ball2.position.copy(chest(H3));ball2.position.y+=Math.sin(t*2)*.012;hands(W[2],H3,ball2.position)}
+ if(BS.mode==='shoot')shootPose(PL[BS.h],t-BS.t0);
+
+ if(BS.mode==='dunk'){const ds=dkS(t-BS.t0);dunkPose(PL[BS.h],ds);postDefPose(PL[4],ds);postDefHands(PL[4],ds,W[4])}
+ if(BS.mode==='block'){const bs=blkS(t-BS.t0);dunkPose(PL[2],bs<1.3?.3:2.15+bs);defPose(PL[4],bs+D5);blkHands(PL[4],bs,W[4])}
+ if(BS.mode==='fade'){fadePose(PL[BS.h],t-BS.t0);defPose(PL[4],t-BS.t0);defHands(PL[4],t-BS.t0,W[4])}
+ PL.forEach((q,i)=>{if(!q.bd)return;['R','L'].forEach(h=>armTo(q,h,W[i][h]))})}
+// ===== position 5 showcase: position 3 drives for a dunk, position 5 rises and blocks it =====
+var blkDone=false;const hl=new T.PointLight(0xffb020,0,9);S.add(hl);const bkEl=document.getElementById('bk'),BM=new T.Vector3(12.3,2.9,.6),P5B=[11.9,0.45],TB=1.76,D5=0.15,OVH0=0.9,OVH1=1.05,OVF=0.3,OVR=0.1,SEP=0.62,DRR=0.3,DRF=0.3;
+const blkS=r=>r<1.6?r:r<3.6?1.6+(r-1.6)*.4:2.4+(r-3.6),lerp2=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+function blkP3(o,s){const k=o.H/1.9,H=[o.x,o.z],TK=[12,1.7],d=[rimX-TK[0],-TK[1]],l=Math.hypot(d[0],d[1]),u=[d[0]/l,d[1]/l],A=[rimX-u[0]*.44*k,-u[1]*.44*k],q=[A[0]-P5B[0],A[1]-P5B[1]],ql=Math.hypot(q[0],q[1]);if(ql<SEP){A[0]+=q[0]*(SEP-ql)/ql;A[1]+=q[1]*(SEP-ql)/ql}const E=[A[0]+u[0]*.15,A[1]+u[1]*.15];
+ if(s<1.6)return lerp2(H,TK,s/1.6);if(s<2.1){const a=(s-1.6)/.5;return lerp2(TK,A,1-(1-a)*(1-a))}if(s<2.9)return lerp2(A,E,sm(2.1,2.9,s));return lerp2(E,H,sm(3,3.9,s))}
+function blkP5(o,s){const H=[o.x,o.z];return s<2.9?lerp2(H,P5B,sm(0,1.2-D5,s)):lerp2(P5B,H,sm(2.9,4,s))}
+const jmp=(s,t0,h,ri,ho,fa)=>{const a=s-t0;if(a<0||a>ri+ho+fa)return 0;if(a<ri){const u=a/ri;return h*(1-(1-u)*(1-u))}if(a<ri+ho)return h;const u=(a-ri-ho)/fa;return h*(1-u*u)};
+function blkOv(o,s){const k=o.H/1.9,rg=o.rig.position,e=sm(1.5,TB,s);return new T.Vector3(rg.x,rg.y+(OVH0+(OVH1-OVH0)*e)*o.H,rg.z).addScaledVector(o.bd.rt,OVR*k).addScaledVector(o.bd.fw,OVF*k)}
+function blkBall(o,s){const k=o.H/1.9,rg=o.rig.position,fw=o.bd.fw,rt=o.bd.rt;
+ if(s>=TB){const f=s-TB,y0=BM.y,g0=(3.2+Math.sqrt(10.24+19.6*(y0-.12)))/9.8,g=f-g0,n=Math.floor(g/.55),tf=3.9-TB;let y=y0+3.2*f-4.9*f*f;if(g>0){const h=(g%.55)/.55;y=.12+Math.pow(.45,n)*4*h*(1-h)}ball.rotation.x+=.3;return new T.Vector3(BM.x+(5.3-BM.x)*f/tf,Math.max(y,.12),BM.z+(-3.73-BM.z)*f/tf)}
+ const u=(s/.5)%1,y=.12+(.5*o.H-.12)*Math.pow(Math.abs(2*u-1),1.7),dr=new T.Vector3(rg.x,y,rg.z).addScaledVector(rt,DRR*k).addScaledVector(fw,DRF*k);ball.rotation.x+=.15;return dr.lerp(blkOv(o,s),sm(1.1,1.5,s))}
+function blkHands(o,s,w){if(s<.1||s>3)return;const k=o.H/1.9,fw=o.bd.fw,rt=o.bd.rt,b=o.rig.position,up=sm(1.3-D5,1.6-D5,s)*(1-sm(2.5-D5,2.95-D5,s)),sw=sm(TB-.32,TB-.02,s),T5=s<TB?ball.position:BM;
+ ['R','L'].forEach(h=>{const sd=h==='R'?1:-1,wide=new T.Vector3(b.x,.82*o.H,b.z).addScaledVector(rt,sd*.5*k).addScaledVector(fw,.22*k),hi=new T.Vector3(b.x,1.08*o.H+b.y,b.z).addScaledVector(rt,sd*.14*k).addScaledVector(fw,.2*k);
+  const v=wide.lerp(hi,up);if(h==='R')v.lerp(T5,sw*up);w[h]=v})}
+function startBlock(){busy=true;BS.mode='block';BS.h=2;BS.t0=performance.now()/1000;BS.hs=null;BS.G4=mkG();BS.G5=mkG();BS.hit=0;BS.cp=cam.position.clone();SC.on=true;own3=false;ball.visible=true}
+// camera favours position 5: wide establishing shot, push in on the jump, shake on contact, then follow the blocker down
+function blockCam(t){const r=t-BS.t0,s=blkS(r),p5=PL[4].rig.position,a=sm(.78,1.66,s),b=sm(2.15,3.2,s),
+ des=new T.Vector3(6.6,2.8,7.4).lerp(new T.Vector3(8.3,1.9,4.9),a).lerp(new T.Vector3(8,2.3,4.6),b),
+ look=new T.Vector3(11.8,1.5,1.4).lerp(new T.Vector3(12,2.9,.3),a).lerp(new T.Vector3(p5.x,1.4,p5.z),b),fv=44-4*a+2*b,sh=.05*kick(s,TB)+.01*kick(s,TB+.2);
+ BS.cp.lerp(des,s<.6?.05:.08);tgtNow.lerp(look,.12);
+ const nz=new T.Vector3(Math.sin(r*83),Math.sin(r*71+1.3),Math.sin(r*97+.7)).multiplyScalar(sh);cam.position.copy(BS.cp).add(nz);
+ const bf=cam.userData.bf||36;cam.userData.bf=bf+(fv-bf)*.05;cam.fov=Math.min(80,cam.userData.bf*AF);cam.updateProjectionMatrix();cam.lookAt(tgtNow.clone().addScaledVector(nz,.4))}
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function go(i,first){if(busy||i<0||i>=P.length)return;if(i!==4)blkDone=false;busy=true;const p=P[i];fillText(i);DT0=performance.now()/1000;startPass(i);
+ tr={t0:performance.now(),dur:first?3200:2600,fp:cam.position.clone(),ft:tgtNow.clone(),tp:V(p.p),tt:V(p.g),ff:cam.userData.bf||45,tf:p.f};cur=i}
+const W1=new T.Color(0xffffff),DIM=new T.Color(0x70707a),clk=new T.Clock();
+function frame(now){requestAnimationFrame(frame);const t=now/1000,pulse=.5+.5*Math.sin(t*4);
+ PL.forEach((o,i)=>{const on=i===cur;o.mat.color.lerp(on?W1:DIM,.1);o.mat.emissiveIntensity+=((on?.4:.1)-o.mat.emissiveIntensity)*.1;o.sp.material.opacity+=((on?1:.45)-o.sp.material.opacity)*.1;
+  o.ring.material.color.set(on?0xffb020:0x6fa8ff);o.ring.material.opacity=on?.5+.3*pulse:.3;o.ar.visible=on;o.ar.position.set(o.x,o.top+Math.sin(t*3)*.18,o.z);o.ar.rotation.y=t*2});
+ const dt=clk.getDelta();mixers.forEach(m=>m.update(dt));
+ dribble(t);
+ if(tr){const e=Math.min((now-tr.t0)/tr.dur,1),k=ease(e);
+  const p=tr.fp.clone().lerp(tr.tp,k);p.y+=Math.sin(PI*k)*Math.max(4,tr.fp.distanceTo(tr.tp)*.3);
+  cam.position.copy(p);tgtNow.lerpVectors(tr.ft,tr.tt,k);cam.userData.bf=tr.ff+(tr.tf-tr.ff)*k;cam.fov=Math.min(80,cam.userData.bf*AF);
+  cam.updateProjectionMatrix();cam.lookAt(tgtNow);if(e>=1){rest=tr;tr=null;busy=false}
+ }else if(SC.on){BS.mode==='dunk'?dunkCam(t):BS.mode==='block'?blockCam(t):shotCam(t)}else if(rest){const o=rest.tp;cam.position.set(o.x+Math.sin(t*.35)*.7,o.y+Math.sin(t*.5)*.2,o.z+Math.cos(t*.35)*.4);cam.lookAt(tgtNow)}
+ R.render(S,cam)}
+requestAnimationFrame(frame);
+nx.onclick=()=>{if(cur===4&&!busy&&BS.mode==='held'&&BS.h===4&&!blkDone){startBlock();return}if(cur===1&&!busy&&BS.mode==='held'&&BS.h===1){startShot();return}if(cur===2&&!busy&&BS.mode==='held'&&BS.h===2){startFade();return}if(cur===3&&!busy&&BS.mode==='held'&&BS.h===3){startDunk();return}go(cur+1>=P.length?0:cur+1)};pv.onclick=()=>go(cur-1<0?P.length-1:cur-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')nx.click();if(e.key==='ArrowLeft')pv.click()});
+go(0,true);
+</script><script>(function(){function P(m){parent.postMessage({bb:m},'*')}
+function dots(){return [].slice.call(document.querySelectorAll('#dots .dot'))}
+function idx(){return dots().findIndex(function(x){return x.classList.contains('on')})}
+var aN=false,aP=false,last=-1;
+document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;
+var a=t.closest('a.go');if(a){e.preventDefault();e.stopPropagation();P('next');return}
+var n=dots().length;if(!n)return;var i=idx();
+if(t.closest('#nx')){aN=(i===n-1);aP=false}
+else if(t.closest('#pv')){aP=(i===0);aN=false}
+else if(t.closest('.dot')){aN=false;aP=false}},true);
+function watch(){var d=document.getElementById('dots');if(!d||!d.children.length){setTimeout(watch,200);return}
+last=idx();
+new MutationObserver(function(){var n=dots().length,i=idx();if(i<0)return;
+if(aN&&last===n-1&&i===0){aN=false;last=i;P('next');return}
+if(aP&&last===0&&i===n-1){aP=false;last=i;P('prev');return}
+if(i!==last){aN=false;aP=false}
+last=i}).observe(d,{subtree:true,attributes:true,attributeFilter:['class']})}
+watch();
+var st=document.createElement('style');st.textContent='.tag{display:none!important}';document.head.appendChild(st);
+window.addEventListener('load',function(){try{window.focus()}catch(x){}})})();</script></body></html>

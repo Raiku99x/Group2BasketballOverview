@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Group 2 Basketball</title>
+<meta name="theme-color" content="#050a14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/player.glb" as="fetch" crossorigin="anonymous">
+<style>
+:root{--bg:#050a14;--fg:#eef4ff;--mut:#9db3d6;--acc:#ffb020;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:"Inter",system-ui,sans-serif;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+#stage{position:fixed;left:0;top:0;width:100vw;height:100vh;transform-origin:0 0;background:var(--bg);overflow:hidden}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+#sec{position:absolute;z-index:20;top:12px;right:16px;display:flex;gap:6px;padding:5px;border-radius:99px;background:rgba(8,16,32,.72);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px)}
+#sec button{font:inherit;cursor:pointer;border:0;background:transparent;color:var(--mut);padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:.06em;border-radius:99px;white-space:nowrap}
+#sec button:hover{color:#fff}
+#sec button.on{background:var(--acc);color:#1a1000}
+#sec button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+#ld{position:absolute;inset:0;z-index:15;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:var(--bg);color:var(--acc);letter-spacing:.3em;font-weight:700;font-size:14px;text-transform:uppercase;transition:opacity .4s}
+#ld.off{opacity:0;pointer-events:none}
+#ld i{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,176,32,.25);border-top-color:var(--acc);animation:sp .9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#fl{display:none;position:absolute;z-index:30;left:50%;bottom:16px;transform:translateX(-50%);max-width:90%;padding:10px 16px;border-radius:10px;background:#3a1a10;border:1px solid #ff9060;color:#ffd0b8;font-size:13px;text-align:center}
+@media(max-width:1500px){#sec button{padding:5px 9px;font-size:11px}}
+@media(max-width:760px){#sec button{padding:5px 8px;font-size:10px}#sec{top:6px;gap:2px}}
+</style></head><body>
+<div id="stage"><div id="ld"><i></i>Loading…</div><div id="sec" role="tablist" aria-label="Sections"></div>
+<div id="fl">These pages must be served over http(s). Use GitHub Pages, or run <b>python3 -m http.server</b> in this folder.</div></div>
+<script>
+const LABELS=["Intro","Origins","Court","Positions","How to Play","Worldwide"];
+const FILES=["01-intro","02-origins","03-court","04-positions","05-how-to-play","06-worldwide"].map(n=>'pages/'+n+'.html');
+const stage=document.getElementById('stage'),ld=document.getElementById('ld'),sec=document.getElementById('sec');
+const touch=matchMedia('(pointer:coarse)').matches;
+let cur=-1,frame=null,tok=0;
+if(location.protocol==='file:')document.getElementById('fl').style.display='block';
+
+// Always landscape. Android: fullscreen + orientation lock on first tap.
+// iOS / fallback: when held upright, rotate the whole stage 90°.
+function layout(){
+  const w=innerWidth,h=innerHeight,rot=h>w&&touch;
+  stage.style.cssText=rot?'width:'+h+'px;height:'+w+'px;transform:rotate(90deg) translateY(-100%)':'width:'+w+'px;height:'+h+'px;transform:none';
+}
+addEventListener('resize',layout);addEventListener('orientationchange',layout);layout();
+function lockLandscape(){try{const o=screen.orientation;o&&o.lock&&o.lock('landscape').catch(()=>{})}catch(e){}}
+lockLandscape();
+if(touch){
+  const once=()=>{removeEventListener('pointerdown',once);
+    const el=document.documentElement,rq=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(rq&&!document.fullscreenElement){try{const p=rq.call(el);(p&&p.then?p:Promise.resolve()).then(lockLandscape).catch(()=>{})}catch(e){}}};
+  addEventListener('pointerdown',once);
+}
+LABELS.forEach((l,i)=>{const b=document.createElement('button');b.textContent=(i+1)+' · '+l;b.onclick=()=>show(i);sec.appendChild(b)});
+function prefetch(i){if(i<0||i>=FILES.length)return;if(document.querySelector('link[data-pf="'+i+'"]'))return;
+  const l=document.createElement('link');l.rel='prefetch';l.href=FILES[i];l.dataset.pf=i;document.head.appendChild(l)}
+function show(i){
+  if(i<0||i>=FILES.length)i=0;
+  const my=++tok;cur=i;
+  [...sec.children].forEach((b,k)=>b.classList.toggle('on',k===i));
+  history.replaceState(null,'','#'+(i+1));
+  ld.classList.remove('off');
+  if(frame){frame.src='about:blank';frame.remove();frame=null}   // free the previous WebGL context
+  setTimeout(()=>{
+    if(my!==tok)return;
+    const f=document.createElement('iframe');
+    f.title=LABELS[i];f.allow='fullscreen';f.src=FILES[i];
+    f.addEventListener('load',()=>{if(my!==tok)return;setTimeout(()=>ld.classList.add('off'),350);try{f.contentWindow.focus()}catch(e){}prefetch(i+1)});
+    stage.insertBefore(f,ld);frame=f;
+  },80);
+}
+addEventListener('message',e=>{
+  if(!e.data||!e.data.bb||!frame||e.source!==frame.contentWindow)return;
+  if(e.data.bb==='next')show(cur+1>=FILES.length?0:cur+1);
+  if(e.data.bb==='prev')show(cur-1<0?FILES.length-1:cur-1);
+});
+const h=parseInt(location.hash.slice(1),10);
+show(h>=1&&h<=FILES.length?h-1:0);
+</script></body></html>
